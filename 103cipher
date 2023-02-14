@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+
+from sys import argv, exit
+import math
+from math import sqrt, ceil
+from typing import Text, List
+
+
+def print_help() -> None:
+    print("USAGE")
+    print("    ./103cipher message key flag\n")
+    print("DESCRIPTION")
+    print("    message a message, made of ASCII characters")
+    print("    key the encryption key, made of ASCII characters")
+    print("    flag 0 for the message to be encrypted, 1 to be decrypted")
+
+
+def put_key_in_matrix(key: str, matrix_size: int) -> List[List[int]]:
+    i: int = 0
+    index: int = 0
+    boucle: int = 0
+    matrix: List[List[int]] = [[0] * matrix_size for i in range(matrix_size)]
+    ascii_tab: List[int] = [ord(c) for c in key]
+
+    while boucle < len(ascii_tab):
+        if index == matrix_size:
+            index = 0
+            i += 1
+        matrix[i][index] = ascii_tab[boucle]
+        index += 1
+        boucle += 1
+    return matrix
+
+
+def print_key_matrix(matrix: List[List[int]], matrix_size: int) -> None:
+    print("Key matrix:")
+    for i in range(matrix_size):
+        for x in range(matrix_size):
+            if x == matrix_size - 1:
+                print(matrix[i][x], end="")
+            else:
+                print(matrix[i][x], "\t", end=" ")
+        print("")
+
+
+def print_encrypted_matrix(
+    matrix: List[List[int]], nb_of_lines: int, nb_of_rows: int
+) -> None:
+    print("\nEncrypted message:")
+    for i in range(nb_of_lines):
+        for x in range(nb_of_rows):
+            if i == nb_of_lines - 1 and x == nb_of_rows - 1:
+                print(matrix[i][x], end="")
+            else:
+                print(matrix[i][x], end=" ")
+    print("")
+
+
+def put_encrypted_in_matrix(
+    message: str, matrix_size: int, nb_of_lines: int
+) -> List[List[int]]:
+    i: int = 0
+    index: int = 0
+    boucle: int = 0
+    ascii_tab: List[int] = [ord(c) for c in message]
+    matrix: List[List[int]] = [[0] * matrix_size for i in range(nb_of_lines)]
+
+    while boucle < len(ascii_tab):
+        if index == matrix_size:
+            index = 0
+            i += 1
+        matrix[i][index] = ascii_tab[boucle]
+        index += 1
+        boucle += 1
+    return matrix
+
+
+def calc_cell(
+    key_matrix_size: int,
+    message_matrix: List[List[int]],
+    key_matrix: List[List[int]],
+    rows: int,
+    cols: int,
+) -> int:
+    result: int = 0
+    for i in range(key_matrix_size):
+        result += message_matrix[rows][i] * key_matrix[i][cols]
+    return result
+
+
+def calc_my_matrix(
+    message_matrix: List[List[int]],
+    key_matrix: List[List[int]],
+    key_matrix_size: int,
+    nb_of_lines: int,
+) -> List[List[int]]:
+    matrix: List[List[int]] = [[0] * key_matrix_size for i in range(nb_of_lines)]
+
+    i_rows_msg: int = 0
+    i_cols_key: int = 0
+    i_rows_e: int = 0
+    i_cols_e: int = 0
+
+    for i in range(len(matrix) * key_matrix_size):
+        matrix[i_rows_e][i_cols_e] = calc_cell(
+            key_matrix_size, message_matrix, key_matrix, i_rows_msg, i_cols_key
+        )
+        i_cols_e += 1
+        i_cols_key += 1
+        if i_cols_e == key_matrix_size:
+            i_cols_e = 0
+            i_rows_e += 1
+        if i_cols_key == key_matrix_size:
+            i_cols_key = 0
+            i_rows_msg += 1
+    return matrix
+
+
+def main() -> int:
+
+    if len(argv) == 2 and argv[1] == "-h":
+        print_help()
+        return 0
+    if len(argv) != 4:
+        return 84
+
+    if argv[3] == "0":
+        key_matrix_size: int = ceil(sqrt(len(argv[2])))
+        nb_of_lines: int = ceil(len(argv[1]) / key_matrix_size)
+        message_matrix: List[List[int]] = put_encrypted_in_matrix(
+            argv[1], key_matrix_size, nb_of_lines
+        )
+        key_matrix: List[List[int]] = put_key_in_matrix(argv[2], key_matrix_size)
+        encrypted_matrix: List[List[int]] = calc_my_matrix(
+            message_matrix, key_matrix, key_matrix_size, nb_of_lines
+        )
+        print_key_matrix(key_matrix, key_matrix_size)
+        print_encrypted_matrix(encrypted_matrix, nb_of_lines, key_matrix_size)
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main())
